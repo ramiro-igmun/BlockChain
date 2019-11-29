@@ -8,13 +8,18 @@ public class BlockChain {
     blockChain = new LinkedList<>();
   }
 
-  public void generateBlock(){
+  public Block generateBlock(int complexity){
+    Block block;
     if (blockChain.isEmpty()){
-      blockChain.add(new Block(1,"0"));
+      block = new Block(1,"0",complexity);
+      blockChain.add(block);
+
     }else {
       Block previousBlock = blockChain.get(blockChain.size() - 1);
-      blockChain.add(new Block(previousBlock.getId() + 1, previousBlock.getHash()));
+      block = new Block(previousBlock.getId() + 1, previousBlock.getHash(),complexity);
+      blockChain.add(block);
     }
+    return block;
   }
 
   public boolean validateBlockChain(){
