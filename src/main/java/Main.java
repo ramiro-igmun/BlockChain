@@ -16,9 +16,9 @@ public class Main {
     }
 
     if (blockChain.validateBlockChain()) {
-      System.out.println("\nBlockChain Validated");
+      System.out.println(ConsoleColors.ANSI_GREEN + "\nBlockChain Validated" + ConsoleColors.ANSI_RESET);
     } else {
-      System.out.println("\nBlockChain Corrupted");
+      System.out.println(ConsoleColors.ANSI_RED + "\nBlockChain Corrupted" + ConsoleColors.ANSI_RESET);
     }
   }
 }
