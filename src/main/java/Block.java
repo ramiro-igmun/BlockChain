@@ -1,18 +1,20 @@
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 
 @Data
-public class Block {
+public class Block implements Serializable {
   private String hash;
   private String previousHash;
   private int id;
   private long timeStamp;
   private int nonce=0;
   private int miningTime;
+  private static final long SERIAL_VERSION_UID = 1L;
 
   public Block(int id, String previousHash,int complexity) {
     this.previousHash = previousHash;
