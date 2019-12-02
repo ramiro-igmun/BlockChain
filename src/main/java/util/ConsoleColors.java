@@ -1,3 +1,5 @@
+package util;
+
 public enum ConsoleColors {
   ANSI_RESET("\u001B[0m"),
   ANSI_RED ("\u001B[31m"),

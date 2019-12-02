@@ -1,29 +1,28 @@
+import blockchain.BlockChain;
+import blockchain.Miner;
+import util.ConsoleColors;
+import util.FileManager;
+
 import java.util.Scanner;
 
 public class Main {
-  public static void main(String[] args) {
+  public static void main(String[] args) throws InterruptedException {
 
-    BlockChain blockChain = new BlockChain();
-    if (blockChain.validateBlockChain()) {
-      System.out.println(ConsoleColors.ANSI_GREEN + "\nBlockChain Validated" + ConsoleColors.ANSI_RESET);
-    } else {
-      System.out.println(ConsoleColors.ANSI_RED + "\nBlockChain Corrupted" +
-              "\nDeleting current BlockChain and creating a new one..." + ConsoleColors.ANSI_RESET);
+    FileManager fileManager = new FileManager();
+    BlockChain blockChain = new BlockChain(fileManager);
+    if (!blockChain.validateBlockChain()) {
       blockChain.deleteBlockChain();
     }
-
-    Scanner reader = new Scanner(System.in);
-
-    System.out.println("Enter number of blocks: ");
-    int number = Integer.parseInt(reader.nextLine());
-    System.out.println("Enter the complexity of the Proof of Work: ");
-    int complexity = Integer.parseInt(reader.nextLine());
-
-    for (int i = 0; i < number; i++) {
-      blockChain.generateBlock(complexity);
-    }
-
     blockChain.printBlocks();
 
+    Thread[] threads = new Thread[100];
+    for (int i = 0; i < 100 ; i++){
+      threads[i] = new Thread(new Miner(blockChain), "" + i);
+      threads[i].start();
+    }
+
+    for (Thread thread : threads){
+      thread.join();
+    }
   }
 }
