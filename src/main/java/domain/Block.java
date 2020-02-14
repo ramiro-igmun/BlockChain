@@ -1,10 +1,8 @@
-package blockchain;
+package domain;
 
 import lombok.Data;
-import util.Sha256;
 
 import java.io.Serializable;
-import java.time.LocalTime;
 import java.util.Date;
 
 @Data
@@ -18,25 +16,14 @@ public class Block implements Serializable {
   private String minerId;
   private static final long SERIAL_VERSION_UID = 1L;
 
-  public Block(int id, String previousHash, int complexity) {
+  public Block(int id, String previousHash) {
     this.previousHash = previousHash;
     this.id = id;
     timeStamp = new Date().getTime();
-    mine(complexity);
   }
 
-  private String applyHash() {
-    return Sha256.applySha256(getSignature());
-  }
-
-  private void mine(int complexity) {
-    int start = LocalTime.now().toSecondOfDay();
-    String targetPrefix = new String(new char[complexity]).replace('\0', '0');
-    while (!applyHash().substring(0, complexity).equals(targetPrefix)) {
-      nonce++;
-    }
-    hash = applyHash();
-    miningTime = LocalTime.now().toSecondOfDay() - start;
+  public void increaseNonce() {
+    nonce++;
   }
 
   public String getSignature() {

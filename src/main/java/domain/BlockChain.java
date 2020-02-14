@@ -1,20 +1,19 @@
-package blockchain;
+package domain;
 
-import util.ConsoleColors;
-import util.FileManager;
-import util.Sha256;
+import io.FileManager;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 
 public class BlockChain {
   private List<Block> blockChain;
   private FileManager fileManager;
+  private Auditor auditor;
   volatile private AtomicInteger miningComplexity;
 
-  public BlockChain(FileManager fileManager) {
+  public BlockChain(FileManager fileManager, Auditor auditor) {
     this.fileManager = fileManager;
+    this.auditor = auditor;
     blockChain = fileManager.loadBlockChain();
     miningComplexity = new AtomicInteger();
     if (!blockChain.isEmpty()) {
@@ -31,39 +30,6 @@ public class BlockChain {
     }
   }
 
-  public boolean validateBlockChain() {
-    if (blockChain.isEmpty()) {
-      return true;
-    }
-    if (!ValidateBlockChainHashConsistency()) {
-      return false;
-    }
-    if (validateBlockHash(blockChain.get(0))) {
-      System.out.println(ConsoleColors.ANSI_GREEN + "\nBlock Chain Validated" + ConsoleColors.ANSI_RESET);
-      return true;
-    } else {
-      System.out.println(ConsoleColors.ANSI_RED + "\nBlock Chain Corrupted");
-      return false;
-    }
-  }
-
-  private boolean ValidateBlockChainHashConsistency() {
-    for (int i = 0; i < blockChain.size() - 1; i++) {
-      Block previousBlock = blockChain.get(i);
-      Block block = blockChain.get(i + 1);
-      if (!previousBlock.getHash().equals(block.getPreviousHash()) || !validateBlockHash(block)) {
-        System.out.println(ConsoleColors.ANSI_RED + "\nBlock Chain Corrupted");
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public boolean validateBlockHash(Block block) {
-    String hash = Sha256.applySha256(block.getSignature());
-    return block.getHash().equals(hash);
-  }
-
   public void printBlocks() {
     blockChain.forEach(System.out::println);
   }
@@ -76,7 +42,7 @@ public class BlockChain {
 
   //this method is accessed by the miner threads
   public synchronized void addBlock(Block block) {
-    if (validateBlock(block) && validateComplexity(block)) {
+    if (auditor.validateBlock(block, this)) {
       blockChain.add(block);
       System.out.println(block);
       updateMiningComplexity(block);
@@ -96,19 +62,6 @@ public class BlockChain {
     }
   }
 
-  private boolean validateBlock(Block block) {
-    if (!blockChain.isEmpty()) {
-      Block previousBlock = blockChain.get(blockChain.size() - 1);
-      return previousBlock.getHash().equals(block.getPreviousHash()) && validateBlockHash(block);
-    } else {
-      return validateBlockHash(block);
-    }
-  }
-
-  private boolean validateComplexity(Block block) {
-    return Pattern.matches("[0]{" + getMiningComplexity() + "}", block.getHash().substring(0, getMiningComplexity()));
-  }
-
   public Block getLastBlock() {
     if (blockChain.isEmpty()) {
       return null;
@@ -124,5 +77,16 @@ public class BlockChain {
     return blockChain.size();
   }
 
+  public boolean isEmpty() {
+    return blockChain.isEmpty();
+  }
+
+  public Block get(int index) {
+    return blockChain.get(index);
+  }
+
+  public int size() {
+    return blockChain.size();
+  }
 }
 

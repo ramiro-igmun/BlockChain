@@ -1,9 +1,8 @@
-import blockchain.BlockChain;
-import blockchain.Miner;
-import util.ConsoleColors;
-import util.FileManager;
+import domain.Auditor;
+import domain.BlockChain;
+import domain.Miner;
+import io.FileManager;
 
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
@@ -12,7 +11,8 @@ public class Main {
     Scanner reader = new Scanner(System.in);
 
     FileManager fileManager = new FileManager();
-    BlockChain blockChain = new BlockChain(fileManager);
+    Auditor auditor = new Auditor();
+    BlockChain blockChain = new BlockChain(fileManager, auditor);
 
     System.out.println("Delete previous BlockChain?(\"y\",\"n\")");
     String option = reader.next();
@@ -20,7 +20,7 @@ public class Main {
     if (option.equals("y")){
       blockChain.deleteBlockChain();
     }else{
-      if (!blockChain.validateBlockChain()) {
+      if (!auditor.validateBlockChain(blockChain)) {
         blockChain.deleteBlockChain();
       }
       blockChain.printBlocks();

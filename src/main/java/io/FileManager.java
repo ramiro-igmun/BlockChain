@@ -1,6 +1,6 @@
-package util;
+package io;
 
-import blockchain.Block;
+import domain.Block;
 
 import java.io.*;
 import java.util.LinkedList;
