@@ -10,7 +10,7 @@ public class Miner implements Runnable {
   @Override
   public void run() {
 
-    while (blockChain.getLength() < 5) {
+    while (blockChain.getLength() < 15) {
       Block previousBlock = blockChain.getLastBlock();
       Block block;
       if (previousBlock == null) { // if the block chain is empty

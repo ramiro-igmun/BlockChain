@@ -1,3 +1,5 @@
 \.idea/
 /target/
 /blockChain.sr
+/src/main/resources/META-INF/
+/out/

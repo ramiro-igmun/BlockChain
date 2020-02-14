@@ -5,36 +5,49 @@ import util.FileManager;
 import util.Sha256;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 public class BlockChain {
   private List<Block> blockChain;
   private FileManager fileManager;
-  volatile private int miningComplexity;
+  volatile private AtomicInteger miningComplexity;
 
   public BlockChain(FileManager fileManager) {
     this.fileManager = fileManager;
     blockChain = fileManager.loadBlockChain();
-    miningComplexity = 0;
+    miningComplexity = new AtomicInteger();
     if (!blockChain.isEmpty()) {
-      miningComplexity=getLastMiningComplexity();
+      updateToLastMiningComplexity();
     }
   }
 
-  private int getLastMiningComplexity() {
+  private void updateToLastMiningComplexity() {
     for (int i = 0; i < getLastBlock().getHash().length() - 1; i++) {
       if (getLastBlock().getHash().charAt(i) != '0') {
         break;
       }
-      miningComplexity++;
+      miningComplexity.incrementAndGet();
     }
-    return miningComplexity;
   }
 
   public boolean validateBlockChain() {
     if (blockChain.isEmpty()) {
       return true;
     }
+    if (!ValidateBlockChainHashConsistency()) {
+      return false;
+    }
+    if (validateBlockHash(blockChain.get(0))) {
+      System.out.println(ConsoleColors.ANSI_GREEN + "\nBlock Chain Validated" + ConsoleColors.ANSI_RESET);
+      return true;
+    } else {
+      System.out.println(ConsoleColors.ANSI_RED + "\nBlock Chain Corrupted");
+      return false;
+    }
+  }
+
+  private boolean ValidateBlockChainHashConsistency() {
     for (int i = 0; i < blockChain.size() - 1; i++) {
       Block previousBlock = blockChain.get(i);
       Block block = blockChain.get(i + 1);
@@ -43,26 +56,25 @@ public class BlockChain {
         return false;
       }
     }
-    if (validateBlockHash(blockChain.get(0))) {
-      System.out.println(ConsoleColors.ANSI_GREEN + "\nBlock Chain Validated" + ConsoleColors.ANSI_RESET);
-    } else {
-      System.out.println(ConsoleColors.ANSI_RED + "\nBlock Chain Corrupted");
-    }
-    return validateBlockHash(blockChain.get(0));
+    return true;
+  }
+
+  public boolean validateBlockHash(Block block) {
+    String hash = Sha256.applySha256(block.getSignature());
+    return block.getHash().equals(hash);
   }
 
   public void printBlocks() {
-    for (Block block :
-            blockChain) {
-      System.out.println(block);
-    }
+    blockChain.forEach(System.out::println);
   }
 
   public void deleteBlockChain() {
     blockChain.clear();
     fileManager.deleteFile();
+    miningComplexity.set(0);
   }
 
+  //this method is accessed by the miner threads
   public synchronized void addBlock(Block block) {
     if (validateBlock(block) && validateComplexity(block)) {
       blockChain.add(block);
@@ -74,19 +86,14 @@ public class BlockChain {
 
   private void updateMiningComplexity(Block block) {
     if (block.getMiningTime() < 15) {
-      miningComplexity++;
+      miningComplexity.incrementAndGet();
       System.out.println("\nN increases by 1");
     } else if (block.getMiningTime() > 30) {
-      miningComplexity--;
+      miningComplexity.decrementAndGet();
       System.out.println("\nN decreases by 1");
     } else {
       System.out.println("\nN stays the same");
     }
-  }
-
-  public boolean validateBlockHash(Block block) {
-    String hash = Sha256.applySha256(block.getSignature());
-    return block.getHash().equals(hash);
   }
 
   private boolean validateBlock(Block block) {
@@ -98,8 +105,8 @@ public class BlockChain {
     }
   }
 
-  private boolean validateComplexity(Block block) {//TODO correct the regex
-    return Pattern.matches("[0]{" + miningComplexity + "}", block.getHash().substring(0, miningComplexity));
+  private boolean validateComplexity(Block block) {
+    return Pattern.matches("[0]{" + getMiningComplexity() + "}", block.getHash().substring(0, getMiningComplexity()));
   }
 
   public Block getLastBlock() {
@@ -110,7 +117,7 @@ public class BlockChain {
   }
 
   public int getMiningComplexity() {
-    return miningComplexity;
+    return miningComplexity.get();
   }
 
   public int getLength() {
