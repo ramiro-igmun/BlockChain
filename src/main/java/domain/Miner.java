@@ -1,44 +1,62 @@
 package domain;
 
+import controller.Controller;
 import util.Sha256;
 
 import java.time.LocalTime;
+import java.util.Date;
 
 public class Miner implements Runnable {
-  BlockChain blockChain;
+  private Controller controller;
 
-  public Miner(BlockChain blockChain) {
-    this.blockChain = blockChain;
+  public Miner(Controller controller) {
+    this.controller = controller;
   }
 
   @Override
   public void run() {
+    BlockChainDetailsDTO blockChain = controller.getBlockChainDetails();
 
-    while (blockChain.getLength() < 15) {
-      Block previousBlock = blockChain.getLastBlock();
-      Block block;
-      if (previousBlock == null) { // if the block chain is empty
-        block = new Block(1, "0");
-        mine(block, 0);
+    while (blockChain.getSize() < blockChain.getMaxChainSize()) {
+      Block lastBlock = blockChain.getLastBlock();
+      Block newBlock;
+      //declaring the new Block's fields
+      String previousHash;
+      int id;
+
+      if (lastBlock.getId() == 0) { // if the block chain is empty
+        id = 1;
+        previousHash = "0";
+        newBlock = mine(id, previousHash, 0);
       } else {
-        block = new Block(previousBlock.getId() + 1, previousBlock.getHash());
-        mine(block,blockChain.getMiningComplexity());
+        id = lastBlock.getId() + 1;
+        previousHash = lastBlock.getHash();
+        newBlock = mine(id, previousHash, blockChain.getComplexity());
       }
-      block.setMinerId(Thread.currentThread().getName());
-      blockChain.addBlock(block);
+      controller.addMinedBlock(newBlock);
+      blockChain = controller.getBlockChainDetails();
     }
-  }
-  private String applyHash(Block block) {
-    return Sha256.applySha256(block.getSignature());
   }
 
-  private void mine(Block block, int complexity) {
+  private Block mine(int id, String previousHash, int complexity) {
+    //start chronometer
     int start = LocalTime.now().toSecondOfDay();
+    //initializing fields
     String targetPrefix = new String(new char[complexity]).replace('\0', '0');
-    while (!applyHash(block).substring(0, complexity).equals(targetPrefix)) {
-      block.increaseNonce();
+    int nonce = 0;
+    String hash, minerId = Thread.currentThread().getName();
+    long timeStamp = new Date().getTime();
+
+    /*
+    * While applying sha256 hashing to the blocks signature
+    * doesn't match the target complexity(prefix of 0s), increment the nonce
+    */
+    while (!(hash=Sha256.applySha256(previousHash + id + timeStamp + nonce)).substring(0, complexity).equals(targetPrefix)) {
+     nonce++;
+     timeStamp = new Date().getTime();
     }
-    block.setHash(applyHash(block));
-    block.setMiningTime(LocalTime.now().toSecondOfDay() - start);
+    //stop chronometer
+    int miningTime = LocalTime.now().toSecondOfDay() - start;
+    return new Block(id,hash,previousHash,nonce,miningTime,minerId,timeStamp);
   }
 }
