@@ -38,7 +38,7 @@ public class Miner implements Runnable {
     }
   }
 
-  private Block mine(int id, String previousHash, int complexity) {
+    public Block mine(int id, String previousHash, int complexity) {
     //start chronometer
     int start = LocalTime.now().toSecondOfDay();
     //initializing fields

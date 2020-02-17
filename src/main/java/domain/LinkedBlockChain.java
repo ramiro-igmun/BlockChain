@@ -3,18 +3,19 @@ package domain;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MyBlockChain implements BlockChain {
+public class LinkedBlockChain implements BlockChain {
   private List<Block> blocks;
-  public final int maxChainSize = 15;
+  public final int maxChainSize;
   private int miningComplexity;
 
-  public MyBlockChain() {
+  public LinkedBlockChain(int maxChainSize) {
+    this.maxChainSize = maxChainSize;
     this.blocks = new LinkedList<>();
     miningComplexity = 0;//TODO is AtomicInteger necessary yet?
   }
 
   @Override
-  public synchronized void addBlock(Block block) {
+  public void addBlock(Block block) {
     blocks.add(block);
     System.out.println(block);
     updateMiningComplexity(block);

@@ -20,7 +20,7 @@ public class BlockChainInit {
     try {
       blockChain = (BlockChain) fileManager.load("blockChain.sr");
     } catch (FileNotFoundException e) {
-      blockChain = new MyBlockChain();
+      blockChain = new LinkedBlockChain(15);
     }
     Controller controller = new Controller(blockChain, auditor, fileManager);
 
