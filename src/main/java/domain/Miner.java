@@ -57,6 +57,14 @@ public class Miner implements Runnable {
     }
     //stop chronometer
     int miningTime = LocalTime.now().toSecondOfDay() - start;
-    return new Block(id,hash,previousHash,nonce,miningTime,minerId,timeStamp);
+      return Block.builder()
+              .id(id)
+              .hash(hash)
+              .minerId(minerId)
+              .miningTime(miningTime)
+              .nonce(nonce)
+              .previousHash(previousHash)
+              .timeStamp(timeStamp)
+              .build();
   }
 }

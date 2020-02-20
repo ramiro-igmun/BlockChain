@@ -1,11 +1,14 @@
 package domain;
 
+import lombok.Builder;
 import lombok.Getter;
+import lombok.With;
 import util.ConsoleColors;
 
 import java.io.Serializable;
 
 @Getter
+@Builder
 public class Block implements Serializable {
   private final int id;
   private final String hash;
@@ -15,16 +18,6 @@ public class Block implements Serializable {
   private final int miningTime;
   private final String minerId;
   private static final long SERIAL_VERSION_UID = 17111323L;
-
-  public Block(int id, String hash, String previousHash, int nonce, int miningTime, String minerId, long timeStamp) {
-    this.id = id;
-    this.hash = hash;
-    this.previousHash = previousHash;
-    this.nonce = nonce;
-    this.miningTime = miningTime;
-    this.minerId = minerId;
-    this.timeStamp = timeStamp;
-  }
 
   public String getSignature() {
     return previousHash + id + timeStamp + nonce;

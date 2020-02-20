@@ -36,7 +36,7 @@ public class LinkedBlockChain implements BlockChain {
   @Override
   public Block getBlock(int index) {
     if (blocks.isEmpty() || blocks.size() < (index + 1)) {
-      return new Block(0, "", "", 0, 0, "", 0);//Special case Block -> indicates BlockChain empty
+      return Block.builder().id(0).hash("").previousHash("").timeStamp(0).nonce(0).miningTime(0).minerId("").build();
     }
     return blocks.get(index);
   }
